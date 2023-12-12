@@ -8,7 +8,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
 
 import java.util.List;
 
@@ -24,19 +23,15 @@ public class PowerNodeBlockEntity extends BlockEntity {
     private int lastCheckY;
     private List<PowerNodeBeamSection> checkingBeamSections = Lists.newArrayList();
     /**
-     * The maximum number of nodes that can be connected
+     * Used to track whether this BlockEntity is in the connecting state
      */
-    public static final int MAX_CONNECTIONS = 10;
-    /**
-     * Range that can be connected to
-     */
-    public static final int POWER_RANGE = 6;
+    public boolean isLinking = false;
     /**
      * Other nodes connected from this node
      */
     List<PowerNodeBlockEntity> connectedNodes = org.apache.commons.compress.utils.Lists.newArrayList();
     /**
-     * Other nodes connected to the current node from other nodes
+     * Other nodes connected to the current node
      */
     List<PowerNodeBlockEntity> passivelyConnectedNodes = org.apache.commons.compress.utils.Lists.newArrayList();
 
@@ -86,6 +81,20 @@ public class PowerNodeBlockEntity extends BlockEntity {
         }
     }
 
+    /**
+     * The maximum number of nodes that can be connected
+     */
+    public int getMaxConnections() {
+        return 10;
+    }
+
+    /**
+     * Range that can be connected to
+     */
+    public int getPowerRange() {
+        return 6;
+    }
+
     public List<PowerNodeBeamSection> getBeamSections() {
         return (List<PowerNodeBeamSection>) this.beamSections;
     }
@@ -113,7 +122,18 @@ public class PowerNodeBlockEntity extends BlockEntity {
     public boolean removePassivelyConnectedNode(PowerNodeBlockEntity pBlockEntity) {
         return this.getPassivelyConnectedNodes().remove(pBlockEntity);
     }
-    
+
+    public double distanceTo(PowerNodeBlockEntity pBlockEntity) {
+        BlockPos pos1 = this.getBlockPos();
+        BlockPos pos2 = pBlockEntity.getBlockPos();
+
+        double dx = pos1.getX() - pos2.getX();
+        double dy = pos1.getY() - pos2.getY();
+        double dz = pos1.getZ() - pos2.getZ();
+
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
     /**
      * Return an {@link AABB} that controls the visible scope of a {@link BlockEntityWithoutLevelRenderer} associated with this {@link BlockEntity}
      * Defaults to the collision bounding box {@link BlockState#getCollisionShape(BlockGetter, BlockPos)} associated with the block
