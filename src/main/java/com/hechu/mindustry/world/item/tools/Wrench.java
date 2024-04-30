@@ -67,7 +67,7 @@ public class Wrench extends ModItem {
         double distance = powerNodeBlockEntitySrc.distanceTo(powerNodeBlockEntityDst);
         if (distance > powerNodeBlockEntitySrc.getPowerRange()) {
             Utils.chatSendWarn(pContext.getPlayer(), "out_of_range");
-            MindustryConstants.logger.debug(String.valueOf(distance));
+//            MindustryConstants.logger.debug(String.valueOf(distance));
             return InteractionResult.PASS;
         }
 
@@ -84,15 +84,16 @@ public class Wrench extends ModItem {
         }
 
         // 如果点击的节点是已经被连接的，那么就取消连接
-        if (powerNodeBlockEntitySrc.getConnectedNodes().contains(powerNodeBlockEntityDst)
-                && powerNodeBlockEntityDst.getPassivelyConnectedNodes().contains(powerNodeBlockEntitySrc)) {
-            powerNodeBlockEntitySrc.removeConnectedNode(powerNodeBlockEntityDst);
-            powerNodeBlockEntityDst.removePassivelyConnectedNode(powerNodeBlockEntitySrc);
+        if (powerNodeBlockEntitySrc.getConnectedNodes().contains(powerNodeBlockEntityDst.getBlockPos())
+                && powerNodeBlockEntityDst.getPassivelyConnectedNodes().contains(powerNodeBlockEntitySrc.getBlockPos())) {
+            powerNodeBlockEntitySrc.removeConnectedNode(powerNodeBlockEntityDst.getBlockPos());
+            powerNodeBlockEntityDst.removePassivelyConnectedNode(powerNodeBlockEntitySrc.getBlockPos());
             Utils.chatSendInfo(pContext.getPlayer(), "disconnected");
             return InteractionResult.SUCCESS;
         } else {
-            powerNodeBlockEntityDst.connectFromOtherNode(powerNodeBlockEntitySrc);
-            powerNodeBlockEntitySrc.connectToOtherNode(powerNodeBlockEntityDst);
+            powerNodeBlockEntityDst.connectFromOtherNode(powerNodeBlockEntitySrc.getBlockPos());
+            powerNodeBlockEntitySrc.connectToOtherNode(powerNodeBlockEntityDst.getBlockPos());
+
             Utils.chatSendInfo(pContext.getPlayer(), "connected");
         }
         return InteractionResult.SUCCESS;

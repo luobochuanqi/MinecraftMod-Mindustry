@@ -65,13 +65,15 @@ public class PowerNodeBlock extends BaseEntityBlock {
     @Override
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         PowerNodeBlockEntity powerNodeBlockEntity = (PowerNodeBlockEntity) pLevel.getBlockEntity(pPos);
-        List<PowerNodeBlockEntity> passivelyConnectedNodes = powerNodeBlockEntity.getPassivelyConnectedNodes();
-        List<PowerNodeBlockEntity> connectedNodes = powerNodeBlockEntity.getConnectedNodes();
-        for (PowerNodeBlockEntity blockEntity : passivelyConnectedNodes) {
-            blockEntity.removeConnectedNode(powerNodeBlockEntity);
+        List<BlockPos> passivelyConnectedNodes = powerNodeBlockEntity.getPassivelyConnectedNodes();
+        List<BlockPos> connectedNodes = powerNodeBlockEntity.getConnectedNodes();
+        for (BlockPos nodePos : passivelyConnectedNodes) {
+            PowerNodeBlockEntity blockEntity = (PowerNodeBlockEntity) pLevel.getBlockEntity(nodePos);
+            blockEntity.removeConnectedNode(pPos);
         }
-        for (PowerNodeBlockEntity blockEntity : connectedNodes) {
-            blockEntity.removePassivelyConnectedNode(powerNodeBlockEntity);
+        for (BlockPos nodePos : connectedNodes) {
+            PowerNodeBlockEntity blockEntity = (PowerNodeBlockEntity) pLevel.getBlockEntity(nodePos);
+            blockEntity.removePassivelyConnectedNode(pPos);
         }
         super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
     }
