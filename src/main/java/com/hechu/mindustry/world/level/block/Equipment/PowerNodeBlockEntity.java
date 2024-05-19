@@ -19,9 +19,6 @@ import java.util.List;
  */
 public class PowerNodeBlockEntity extends ModBlockEntity {
     public static final String NAME = "power_node";
-    /**
-     * A list of beam segments for this PowerNode.
-     */
     List<PowerNodeBeamSection> beamSections = Lists.newArrayList();
     private int lastCheckY;
     private List<PowerNodeBeamSection> checkingBeamSections = Lists.newArrayList();
