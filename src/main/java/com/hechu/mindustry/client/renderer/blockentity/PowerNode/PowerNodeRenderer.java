@@ -1,4 +1,4 @@
-package com.hechu.mindustry.client.renderer.blockentity;
+package com.hechu.mindustry.client.renderer.blockentity.PowerNode;
 
 import com.hechu.mindustry.MindustryConstants;
 import com.hechu.mindustry.world.level.block.Equipment.PowerNodeBlockEntity;
