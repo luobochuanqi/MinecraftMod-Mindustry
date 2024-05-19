@@ -58,10 +58,11 @@
   "mindustry.drill_progress": "%d%%已挖掘",
   "mindustry.drill_speed": "挖掘速度 : %d/秒",
   "mindustry.stored_item": "已存储物品 : %d / %d",
-
   "chat.mindustry.info.connected": "连接成功",
   "chat.mindustry.info.select_block": "选择方块坐标: %d, %d, %d",
   "chat.mindustry.info.clear_select_block": "清除已选择的方块坐标",
   "chat.mindustry.info.disconnected": "连接已断开",
-  "chat.mindustry.warning.link_self": "节点无法连接自身"
+  "chat.mindustry.warning.link_self": "节点无法连接自身",
+  "chat.mindustry.max_connections_reached": "已达到最大连接数",
+  "chat.mindustry.out_of_range": "超出范围"
 }

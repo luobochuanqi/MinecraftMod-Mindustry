@@ -3,7 +3,8 @@ package com.hechu.mindustry;
 import com.hechu.mindustry.client.model.MissileBulletModel;
 import com.hechu.mindustry.client.renderer.blockentity.MechanicalDrillBlockEntityRenderer;
 import com.hechu.mindustry.client.renderer.blockentity.PneumaticDrillBlockEntityRenderer;
-import com.hechu.mindustry.client.renderer.blockentity.PowerNodeRenderer;
+import com.hechu.mindustry.client.renderer.blockentity.PowerNode.PowerNodeRenderEvent;
+import com.hechu.mindustry.client.renderer.blockentity.PowerNode.PowerNodeRenderer;
 import com.hechu.mindustry.client.renderer.blockentity.TurretRenderer;
 import com.hechu.mindustry.client.renderer.entity.BasicBulletRender;
 import com.hechu.mindustry.client.renderer.entity.MissileBulletRender;
@@ -30,6 +31,8 @@ public class Mindustry {
         Utils.checkFolder(MindustryConstants.configFolder);
         MindustryConstants.commonConfig = ConfigHandler.readConfig("common", CommonConfig.class);
 //        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        MinecraftForge.EVENT_BUS.addListener(PowerNodeRenderEvent::render);
 
         GeckoLib.initialize();
 

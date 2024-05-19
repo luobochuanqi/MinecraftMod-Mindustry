@@ -3,19 +3,21 @@ package com.hechu.mindustry.world.level.block.Equipment;
 import com.google.common.collect.Lists;
 import com.hechu.mindustry.kiwi.BlockEntityModule;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import snownee.kiwi.block.entity.ModBlockEntity;
 
 import java.util.List;
 
 /**
  * @author luobochuanqi
  */
-public class PowerNodeBlockEntity extends BlockEntity {
+public class PowerNodeBlockEntity extends ModBlockEntity {
     public static final String NAME = "power_node";
     /**
      * A list of beam segments for this PowerNode.
@@ -23,29 +25,15 @@ public class PowerNodeBlockEntity extends BlockEntity {
     List<PowerNodeBeamSection> beamSections = Lists.newArrayList();
     private int lastCheckY;
     private List<PowerNodeBeamSection> checkingBeamSections = Lists.newArrayList();
-    /**
-     * The maximum number of nodes that can be connected
-     */
-    public static final int MAX_CONNECTIONS = 10;
-    /**
-     * Range that can be connected to
-     */
-    public static final int POWER_RANGE = 6;
-    /**
-     * Other nodes connected from this node
-     */
-    List<PowerNodeBlockEntity> connectedNodes = org.apache.commons.compress.utils.Lists.newArrayList();
-    /**
-     * Other nodes connected to the current node from other nodes
-     */
-    List<PowerNodeBlockEntity> passivelyConnectedNodes = org.apache.commons.compress.utils.Lists.newArrayList();
+    public boolean isLinking = false;
+    List<BlockPos> connectedNodes = Lists.newArrayList();
+    List<BlockPos> passivelyConnectedNodes = Lists.newArrayList();
 
     public PowerNodeBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(BlockEntityModule.POWER_NODE_BLOCK_ENTITY.get(), pPos, pBlockState);
     }
 
     public static void tick(Level pLevel, BlockPos pPos, BlockState pState, PowerNodeBlockEntity pBlockEntity) {
-//        LOGGER.debug("lastCheckY:" + String.valueOf(pBlockEntity.lastCheckY));
 
         int i = pPos.getX();
         int j = pPos.getY();
@@ -86,44 +74,127 @@ public class PowerNodeBlockEntity extends BlockEntity {
         }
     }
 
+    public int getMaxConnections() {
+        return 10;
+    }
+
+    public int getPowerRange() {
+        return 6;
+    }
+
     public List<PowerNodeBeamSection> getBeamSections() {
         return (List<PowerNodeBeamSection>) this.beamSections;
     }
 
-    public List<PowerNodeBlockEntity> getConnectedNodes() {
+    public List<BlockPos> getConnectedNodes() {
         return this.connectedNodes;
     }
 
-    public List<PowerNodeBlockEntity> getPassivelyConnectedNodes() {
+    public List<BlockPos> getPassivelyConnectedNodes() {
         return this.passivelyConnectedNodes;
     }
 
-    public void connectToOtherNode(PowerNodeBlockEntity pBlockEntity) {
-        this.connectedNodes.add(pBlockEntity);
+    public void connectToOtherNode(BlockPos pBlockPos) {
+        this.connectedNodes.add(pBlockPos);
+        this.refresh();
     }
 
-    public void connectFromOtherNode(PowerNodeBlockEntity pBlockEntity) {
-        this.passivelyConnectedNodes.add(pBlockEntity);
+    public void connectFromOtherNode(BlockPos pBlockPos) {
+        this.passivelyConnectedNodes.add(pBlockPos);
+        this.refresh();
     }
 
-    public boolean removeConnectedNode(PowerNodeBlockEntity pBlockEntity) {
-        return this.getConnectedNodes().remove(pBlockEntity);
+    public boolean removeConnectedNode(BlockPos pBlockPos) {
+        boolean removed = this.getConnectedNodes().remove(pBlockPos);
+        if (removed) {
+            this.refresh();
+        }
+        return removed;
     }
 
-    public boolean removePassivelyConnectedNode(PowerNodeBlockEntity pBlockEntity) {
-        return this.getPassivelyConnectedNodes().remove(pBlockEntity);
+    public boolean removePassivelyConnectedNode(BlockPos pBlockPos) {
+        boolean removed = this.getPassivelyConnectedNodes().remove(pBlockPos);
+        if (removed) {
+            this.refresh();
+        }
+        return removed;
     }
-    
+
     /**
-     * Return an {@link AABB} that controls the visible scope of a {@link BlockEntityWithoutLevelRenderer} associated with this {@link BlockEntity}
-     * Defaults to the collision bounding box {@link BlockState#getCollisionShape(BlockGetter, BlockPos)} associated with the block
-     * at this location.
-     *
-     * @return an appropriately size {@link AABB} for the {@link BlockEntity}
+     * @return 此BlockEntity到pBlockEntity的双精度距离
      */
+    public double distanceTo(PowerNodeBlockEntity pBlockEntity) {
+        BlockPos pos1 = this.getBlockPos();
+        BlockPos pos2 = pBlockEntity.getBlockPos();
+
+        double dx = pos1.getX() - pos2.getX();
+        double dy = pos1.getY() - pos2.getY();
+        double dz = pos1.getZ() - pos2.getZ();
+
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
     @Override
     public AABB getRenderBoundingBox() {
         return INFINITE_EXTENT_AABB;
+    }
+
+    @Override
+    public void load(CompoundTag pTag) {
+        readPacketData(pTag);
+        super.load(pTag);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag pTag) {
+        writePacketData(pTag);
+        super.saveAdditional(pTag);
+    }
+
+    @Override
+    protected void readPacketData(CompoundTag compoundTag) {
+        ListTag nodeList = compoundTag.getList("nodes", 10);
+        ListTag passivelyNodeList = compoundTag.getList("passively_nodes", 10);
+        this.connectedNodes.clear();
+        this.passivelyConnectedNodes.clear();
+        for (int i = 0; i < nodeList.size(); i++) {
+            CompoundTag nodeTag = nodeList.getCompound(i);
+            int x = nodeTag.getInt("x");
+            int y = nodeTag.getInt("y");
+            int z = nodeTag.getInt("z");
+            this.connectedNodes.add(new BlockPos(x, y, z));
+        }
+        for (int i = 0; i < passivelyNodeList.size(); i++) {
+            CompoundTag nodeTag = passivelyNodeList.getCompound(i);
+            int x = nodeTag.getInt("x");
+            int y = nodeTag.getInt("y");
+            int z = nodeTag.getInt("z");
+            this.passivelyConnectedNodes.add(new BlockPos(x, y, z));
+        }
+    }
+
+    @NotNull
+    @Override
+    protected CompoundTag writePacketData(CompoundTag compoundTag) {
+        ListTag nodeList = new ListTag();
+        ListTag passivelyNodeList = new ListTag();
+        for (BlockPos nodePos : this.connectedNodes) {
+            CompoundTag nodeTag = new CompoundTag();
+            nodeTag.putInt("x", nodePos.getX());
+            nodeTag.putInt("y", nodePos.getY());
+            nodeTag.putInt("z", nodePos.getZ());
+            nodeList.add(nodeTag);
+        }
+        for (BlockPos passivelyNodePos : this.passivelyConnectedNodes) {
+            CompoundTag nodeTag = new CompoundTag();
+            nodeTag.putInt("x", passivelyNodePos.getX());
+            nodeTag.putInt("y", passivelyNodePos.getY());
+            nodeTag.putInt("z", passivelyNodePos.getZ());
+            passivelyNodeList.add(nodeTag);
+        }
+        compoundTag.put("nodes", nodeList);
+        compoundTag.put("passively_nodes", passivelyNodeList);
+        return compoundTag;
     }
 
     public static class PowerNodeBeamSection {

@@ -58,10 +58,11 @@
   "mindustry.drill_progress": "Progress %d%%",
   "mindustry.drill_speed": "Mining Speed : %d items/s",
   "mindustry.stored_item": "Item Store : %d / %d",
-
   "chat.mindustry.info.connected": "Connect successfully",
   "chat.mindustry.info.select_block": "Select block pos: %d, %d, %d",
   "chat.mindustry.info.clear_select_block": "Clear select block pos",
   "chat.mindustry.info.disconnected": "Disconnect successfully",
-  "chat.mindustry.warning.link_self": "The node cannot connect to itself"
+  "chat.mindustry.warning.link_self": "The node cannot connect to itself",
+  "chat.mindustry.max_connections_reached": "Max connections reached",
+  "chat.mindustry.out_of_range": "Out of range"
 }
